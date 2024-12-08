@@ -1,13 +1,12 @@
 from collections import defaultdict
 from enum import StrEnum, auto
 from itertools import combinations, count
+from pathlib import Path
 
 import aoc_helper
 
-year = 2024
+year = int(Path(__file__).parent.name)
 day = int(__file__.removesuffix(".py").split("_")[-1])
-
-raw = aoc_helper.fetch(day, year)
 
 
 class CalculationMode(StrEnum):
@@ -42,12 +41,12 @@ def antinode_positions_for_pair(a, b, max_xy, mode: CalculationMode):
         ]
     if mode == CalculationMode.add_resonance:
         positions = []
-        for i in count(1):
+        for i in count():  # include 0 to include the antennae locations
             pos1 = a[0] - d[0]*i, a[1] - d[1]*i
             if not pos_in_bounds(pos1, max_xy):
                 break
             positions.append(pos1)
-        for i in count(1):
+        for i in count():
             pos2 = b[0] + d[0]*i, b[1] + d[1]*i
             if not pos_in_bounds(pos2, max_xy):
                 break
@@ -74,28 +73,19 @@ def nr_unique_positions_in_dict(positions_dict):
         for pos in positions
     ))
 
-data = parse_raw(raw)
 
+def part_one(data):
+    antinode_positions = find_antinode_positions(*data, CalculationMode.simple)
+    return nr_unique_positions_in_dict(antinode_positions)
 
-def part_one(data=data):
-    locations, max_xy = data
-    antinode_positions = find_antinode_positions(locations, max_xy, CalculationMode.simple)
+def part_two(data):
+    antinode_positions = find_antinode_positions(*data, CalculationMode.add_resonance)
     return nr_unique_positions_in_dict(antinode_positions)
 
 
+raw = aoc_helper.fetch(day, year)
+data = parse_raw(raw)
 aoc_helper.lazy_test(day=day, year=year, parse=parse_raw, solution=part_one)
-
-
-def part_two(data=data):
-    locations, max_xy = data
-    antinode_positions = find_antinode_positions(locations, max_xy, CalculationMode.add_resonance)
-    antinodes_and_antennae = {
-        freq: locations.get(freq, []) + antinode_positions.get(freq, [])
-        for freq in set(locations) | set(antinode_positions)
-    }
-    return nr_unique_positions_in_dict(antinodes_and_antennae)
-
 aoc_helper.lazy_test(day=day, year=year, parse=parse_raw, solution=part_two)
-
 aoc_helper.lazy_submit(day=day, year=year, solution=part_one, data=data)
 aoc_helper.lazy_submit(day=day, year=year, solution=part_two, data=data)

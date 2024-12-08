@@ -1,6 +1,8 @@
+from pathlib import Path
 import aoc_helper
 
-year = 2024
+
+year = int(Path(__file__).parent.name)
 day = int(__file__.removesuffix(".py").split("_")[-1])
 
 raw = aoc_helper.fetch(day, year)
