@@ -1,3 +1,4 @@
+from collections import deque
 from enum import StrEnum
 from pathlib import Path
 import aoc_helper
@@ -83,32 +84,33 @@ def part_one(data=data):
     positions = {key: None for key in empties}
     start_position = find_start_or_end(data, Things.start), Facing.east
     start_score = 0
+    queue = deque()
+    queue.append((start_position, start_score))
     positions[start_position] = start_score
-    position, score = start_position, start_score
-    while len([x for x in positions.values() if x is None]) > 0:
-
-        go_through_maze(position, score, positions)
+    while queue:
+        position, score = queue.popleft()
+        candidates = (
+            (rotate(position, clockwise=True), score + 1_000),
+            (rotate(position, clockwise=False), score + 1_000),
+            (move(position), score + 1),
+        )
+        for cand_pos, cand_score in candidates:
+            if cand_pos not in positions:
+                # outside of grid
+                continue
+            if positions[cand_pos] is None:
+                # first time we are here
+                positions[cand_pos] = cand_score
+                queue.append((cand_pos, cand_score))
+            elif cand_score < positions[cand_pos]:
+                # better route
+                positions[cand_pos] = cand_score
+                queue.append((cand_pos, cand_score))
+            else:  # worse route
+                continue
     end_pos = find_start_or_end(grid=data, what=Things.end)
     return min([v for k, v in positions.items() if k[0] == end_pos])
 
-def go_through_maze(position, score, positions):
-    candidates = (
-        (rotate(position, clockwise=True), score + 1_000),
-        (rotate(position, clockwise=False), score + 1_000),
-        (move(position), score + 1),
-    )
-    for p, s in candidates:
-        if p not in positions:
-            continue
-        if positions[p] is None:
-            positions[p] = s
-            print(len([x for x in positions.values() if x is None]))
-            go_through_maze(p, s, positions)
-        elif positions[p] > s:
-            positions[p] = s
-            go_through_maze(p, s, positions)
-        else:
-            continue
 
 
 def initialize_empties(grid):
@@ -165,9 +167,8 @@ def get_at(position, grid):
 
 
 
-part_one(data=data)
 
-# aoc_helper.lazy_test(day=day, year=year, parse=parse_raw, solution=part_one)
+aoc_helper.lazy_test(day=day, year=year, parse=parse_raw, solution=part_one)
 
 
 def part_two(data=data):
