@@ -40,7 +40,30 @@ def can_be_made(pattern, towels, solvable, unsolvable):
                 solvable.add(subpattern)
     return pattern in solvable
 
-
+def part_two(data):
+    towels, patterns = data
+    solvable = set(towels)
+    unsolvable = set()
+    for i, pattern in enumerate(patterns):
+        print("part1", i, len(solvable), pattern)
+        if not can_be_made(pattern, towels, solvable, unsolvable):
+            unsolvable.add(pattern)
+    solvable_patterns = [pattern for pattern in patterns if pattern in solvable]
+    n_ways = 0
+    for p in solvable_patterns:
+        print(p)
+        ways = {(t, (t,)) for t in towels}
+        for i in range(-1, -len(p)-1, -1):
+            subpattern = p[i:]
+            for towel in towels:
+                if subpattern.startswith(towel):
+                    if subpattern.removeprefix(towel) in [x[0] for x in ways]:
+                        for way in ways.copy():
+                            if way[0] == subpattern.removeprefix(towel):
+                                new_way = (subpattern, (subpattern, *way[1]))
+                                ways.add(new_way)
+        n_ways += len([way for way in ways if way[0] == p])
+    return n_ways
 
 
 aoc_helper.lazy_test(day=day, year=year, parse=parse_raw, solution=part_one)
